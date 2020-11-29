@@ -13,7 +13,7 @@ async def on_ready():
     print(f'{client.user} has connected to Discord!')
 
     # store the game activity
-    _activity = discord.Game(name='try to DM me')
+    _activity = discord.Activity(name='my DMs \N{EYES}', type=discord.ActivityType.watching())
 
     # store the status
     _status = discord.Status.online
@@ -64,7 +64,7 @@ async def on_message(msg):
             # send a reply
             await msg.reply("I love you too mother \N{EYES}")
     # else if the bot is mentioned and 'good bot' is in the message
-    elif ('good bot' in content or 'best bot') and client.user.mentioned_in(msg):
+    elif ('good bot' in content or 'best bot' in content) and client.user.mentioned_in(msg):
         # set called good bot to true and send a reply
         calledGoodBot = True
         await msg.reply("Thank you. Good human <3 \N{EYES}")
