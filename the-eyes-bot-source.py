@@ -52,7 +52,7 @@ async def on_message(msg):
     # if the author is bot maker and the bot is mentioned
     if msg.author.id == 175635927954227200 and client.user.mentioned_in(msg):
         # if 'good bot' is in the message
-        if 'good bot' in content:
+        if 'good bot' in content or 'best bot' in content:
             # send a reply
             await msg.reply("I know mother, you raised me well \N{EYES}")
         # if 'love you more' is in the message
@@ -64,18 +64,24 @@ async def on_message(msg):
             # send a reply
             await msg.reply("I love you too mother \N{EYES}")
     # else if the bot is mentioned and 'good bot' is in the message
-    elif 'good bot' in content and client.user.mentioned_in(msg):
+    elif ('good bot' in content or 'best bot') and client.user.mentioned_in(msg):
         # set called good bot to true and send a reply
         calledGoodBot = True
-        await msg.reply("Thank you :) \N{EYES}\n\nIf you'd like me on your server, add me here: https://discord.com/api/oauth2/authorize?client_id=769211890407833610&permissions=3136&scope=bot")
+        await msg.reply("Thank you. Good human <3 \N{EYES}")
+        await msg.author.send("\N{EYES}Thanks for calling me a good bot! \N{EYES}\n\nIf you'd like me on your server, add me here: https://discord.com/api/oauth2/authorize?client_id=769211890407833610&permissions=3136&scope=bot")
 
 # client event message edits
 @client.event
 async def on_message_edit(before, after):
-    if ('\N{EYES}' in before.content and '\N{EYES}' not in after.content) or (client.user.mentioned_in(before) and not client.user.mentioned_in(after)):
-        await after.remove_reaction('\N{EYES}', client.user)
-    elif ('\N{EYES}' in after.content and '\N{EYES}' not in before.content) or (client.user.mentioned_in(after) and not client.user.mentioned_in(before)):
-        await after.add_reaction('\N{EYES}')
+    # if the bot is not mentioned or eyes were not posted into the updated message then remove the eyes reaction
+    if (not client.user.mentioned_in(after) and not '\N{EYES}' in after.content):
+        if (client.user.mentioned_in(before) or '\N{EYES}' in before.content):
+            await after.remove_reaction('\N{EYES}', client.user)
+    
+    # if the bot was not mentioned or eyes were not posted into the pre-updated message then add the eyes reaction
+    if (not client.user.mentioned_in(before) and not '\N{EYES}' in before.content):
+        if (client.user.mentioned_in(after) or '\N{EYES}' in after.content):
+            await after.add_reaction('\N{EYES}', client.user)
 
 # run the client using the token
 client.run(TOKEN)
