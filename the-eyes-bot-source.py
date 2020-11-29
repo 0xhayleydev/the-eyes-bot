@@ -13,7 +13,7 @@ async def on_ready():
     print(f'{client.user} has connected to Discord!')
 
     # store the game activity
-    _activity = discord.Activity(name='my DMs \N{EYES}', type=discord.ActivityType.watching())
+    _activity = discord.Activity(name='my DMs \N{EYES}', type=discord.ActivityType.watching)
 
     # store the status
     _status = discord.Status.online
