@@ -73,15 +73,12 @@ async def on_message(msg):
 # client event message edits
 @client.event
 async def on_message_edit(before, after):
-    # if the bot is not mentioned or eyes were not posted into the updated message then remove the eyes reaction
-    if (not client.user.mentioned_in(after) and not '\N{EYES}' in after.content):
-        if (client.user.mentioned_in(before) or '\N{EYES}' in before.content):
-            await after.remove_reaction('\N{EYES}', client.user)
-    
-    # if the bot was not mentioned or eyes were not posted into the pre-updated message then add the eyes reaction
-    if (not client.user.mentioned_in(before) and not '\N{EYES}' in before.content):
-        if (client.user.mentioned_in(after) or '\N{EYES}' in after.content):
-            await after.add_reaction('\N{EYES}', client.user)
+    # if eyes or the bot is pinged in message add the reaction
+    if ('\N{EYES}' in after.content or client.user.mentioned_in(after)):
+        await after.add_reaction('\N{EYES}', client.user)
+    # if eyes isn't mentioned or the bot isn't pinged in message remove the reaction
+    else:
+        await after.remove_reaction('\N{EYES}', client.user)
 
 # run the client using the token
 client.run(TOKEN)
