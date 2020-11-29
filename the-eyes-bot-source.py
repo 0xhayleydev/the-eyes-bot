@@ -75,7 +75,7 @@ async def on_message(msg):
 async def on_message_edit(before, after):
     # if eyes or the bot is pinged in message add the reaction
     if ('\N{EYES}' in after.content or client.user.mentioned_in(after)):
-        await after.add_reaction('\N{EYES}', client.user)
+        await after.add_reaction('\N{EYES}')
     # if eyes isn't mentioned or the bot isn't pinged in message remove the reaction
     else:
         await after.remove_reaction('\N{EYES}', client.user)
