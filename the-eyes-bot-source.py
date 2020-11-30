@@ -50,7 +50,7 @@ async def on_message(msg):
         await msg.add_reaction('\N{POUTING FACE}')
 
     # if the author is bot maker and the bot is mentioned
-    if msg.author.id == 175635927954227200 and client.user.mentioned_in(msg):
+    if msg.author.id == 175635927954227200 and client.user.mentioned_in(msg) and not content[0] == "!":
         # if 'good bot' is in the message
         if 'good bot' in content or 'best bot' in content:
             # send a reply
@@ -63,12 +63,21 @@ async def on_message(msg):
         elif 'love you' in content:
             # send a reply
             await msg.reply("I love you too mother \N{EYES}")
-    # else if the bot is mentioned and 'good bot' is in the message
-    elif ('good bot' in content or 'best bot' in content) and client.user.mentioned_in(msg):
-        # set called good bot to true and send a reply
-        calledGoodBot = True
-        await msg.reply("Thank you. Good human <3 \N{EYES}")
-        await msg.author.send("\N{EYES} Thanks for calling me a good bot! \N{EYES}\n\nIf you'd like me on your server, add me here: https://discord.com/api/oauth2/authorize?client_id=769211890407833610&permissions=3136&scope=bot")
+        # if 'bad bot' is in the message
+        elif 'bad bot' in content:
+            # send a reply
+            await msg.reply("How can you lie to your child like that mOtHeR?! \N{EYES}")
+    # else if the bot is mentioned
+    elif client.user.mentioned_in(msg):
+        # if 'good bot' is in the message
+        if ('good bot' in content or 'best bot' in content):
+            # send a reply
+            await msg.reply("Thank you. Good human <3 \N{EYES}")
+            await msg.author.send("\N{EYES} Thanks for calling me a good bot! \N{EYES}\n\nIf you'd like me on your server, add me here: https://discord.com/api/oauth2/authorize?client_id=769211890407833610&permissions=3136&scope=bot")
+        # if 'bad bot' is in the message
+        elif 'bad bot' in content:
+            # send a reply
+            await msg.reply("BaD HuMaN! \N{LOUDLY CRYING FACE}")
 
 # client event message edits
 @client.event
