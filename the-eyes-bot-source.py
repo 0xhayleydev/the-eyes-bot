@@ -3,7 +3,8 @@ import os
 import discord
 
 # token and client info
-TOKEN = 'NzY5MjExODkwNDA3ODMzNjEw.X5LuZQ.My_zqrmYN8t6AEXoK2htjwNnlWs'
+with open('token.txt', 'r') as file:
+    TOKEN = file.read()
 client = discord.Client()
 
 # client event on ready
