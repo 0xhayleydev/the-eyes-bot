@@ -44,11 +44,6 @@ async def on_message(msg):
         if msg.author.id != 769211890407833610 and 'good bot' not in content:
             # send a reply
             await msg.reply('Try sending me \N{EYES}')
-    
-    # if the message author is the meme
-    if msg.author.id == 189763052378259456:
-        # add an angry react (inside joke)
-        await msg.add_reaction('\N{POUTING FACE}')
 
     # if the author is bot maker and the bot is mentioned
     if msg.author.id == 175635927954227200 and client.user.mentioned_in(msg) and not content[0] == "!":
