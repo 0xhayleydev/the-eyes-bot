@@ -69,7 +69,7 @@ async def on_message(msg):
         if ('good bot' in content or 'best bot' in content):
             # send a reply
             await msg.reply("Thank you. Good human <3 \N{EYES}")
-            await msg.author.send("\N{EYES} Thanks for calling me a good bot! \N{EYES}\n\nIf you'd like me on your server, add me here: https://discord.com/api/oauth2/authorize?client_id=769211890407833610&permissions=3136&scope=bot")
+            await msg.author.send("\N{EYES} Thanks for calling me a good bot! \N{EYES}\n\nIf you'd like me on your server, add me here: https://top.gg/bot/769211890407833610")
         # if 'bad bot' is in the message
         elif 'bad bot' in content:
             # send a reply
