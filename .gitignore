@@ -1,1 +1,5 @@
 /token.txt
+/.vscode/launch.json
+/.vscode/settings.json
+/blacklist.txt
+/testing_token.txt
