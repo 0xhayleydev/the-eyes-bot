@@ -1,12 +1,15 @@
 TESTING = False
 
 #imports
-import os, discord, json, hashlib
+import os, discord, json, hashlib, os
 from discord.ext import commands
 
-default_server_settings = {
+if not os.path.exists("server"):
+    os.mkdir("server")
+
+default_guild_settings = {
     "send_replies": True,
-    "add_reaction": True,
+    "add_reactions": True,
     "allow_direct_dms": True,
     "react_to_edited_messages": False
 }
@@ -26,29 +29,32 @@ author_keywords = {
 
 blacklist_users = []
 
-def read_json_from_file(file_name):
+def read_json_from_file(file_name, default_value):
     try:
         with open(file_name, 'r') as file:
             return json.load(file)
     except json.JSONDecodeError:
-        write_json_to_file(file_name, blacklist)
+        write_json_to_file(file_name, default_value)
     except FileNotFoundError:
-        write_json_to_file(file_name, blacklist)
-        read_json_from_file(file_name)
+        write_json_to_file(file_name, default_value)
+        read_json_from_file(file_name, default_value)
 
 def write_json_to_file(file_name, value):
-    with open(file_name, 'w') as file:
+    with open(file_name, 'w+') as file:
         json.dump(value, file)
 
-def get_user_hash(user):
+def get_hash(user):
     return hashlib.sha256(bytes(str(user), 'utf-8')).hexdigest()
 
-blacklist_users = read_json_from_file('blacklist.txt')
+blacklist_users = read_json_from_file('blacklist.txt', '[]')
 
 def check_blacklist_for_user(user_id):
     if user_id in blacklist_users:
         return True
     return False
+
+def get_guild_file(guild_id):
+    return "server\\" + get_hash(guild_id) + ".json"
 
 # token and bot info
 if TESTING:
@@ -86,28 +92,30 @@ async def on_ready():
 # bot event on message
 @bot.event
 async def on_message(msg):
+    guild_settings = read_json_from_file(get_guild_file(msg.guild.id), default_guild_settings)
+
     # get the content of the message all as lowercase
     content = msg.content.lower()
     
-    if bot.user.mentioned_in(msg):
-        await msg.add_reaction('\N{EYES}')
-        user_hash = get_user_hash(msg.author.id)
+    if bot.user.mentioned_in(msg) and (guild_settings["allow_direct_dms"] or guild_settings["send_replies"]):
+        user_hash = get_hash(msg.author.id)
         if user_hash not in blacklist_users:
             if msg.author.id == 175635927954227200 and not content[0] == '!':
                 keywords_to_check = author_keywords
             else:
                 keywords_to_check = keywords
-            
             for key in keywords_to_check.keys():
                 if key in content:
                     value = keywords_to_check[key]
                     if value[0:2] == 'r:':
-                        await msg.reply(value[2:])
+                        if guild_settings["send_replies"]:
+                            await msg.reply(value[2:])
                     elif value[0:2] == 'd:':
-                        await msg.author.send(value[2:])
+                        if guild_settings["allow_direct_dms"]:
+                            await msg.author.send(value[2:])
                     break
     
-    if '\N{EYES}' in content:
+    if ('\N{EYES}' in content or bot.user.mentioned_in(msg)) and guild_settings["add_reactions"]:
         # add the eyes reaction
         await msg.add_reaction('\N{EYES}')
     
@@ -116,12 +124,15 @@ async def on_message(msg):
 # bot event message edits
 @bot.event
 async def on_message_edit(before, after):
-    # if eyes or the bot is pinged in message add the reaction
-    if ('\N{EYES}' in after.content or bot.user.mentioned_in(after)):
-        await after.add_reaction('\N{EYES}')
-    # if eyes isn't mentioned or the bot isn't pinged in message remove the reaction
-    else:
-        await after.remove_reaction('\N{EYES}', bot.user)
+    guild_settings = read_json_from_file(get_guild_file(before.guild.id), default_guild_settings)
+
+    if guild_settings["react_to_edited_messages"] and guild_settings["add_reactions"]:
+        # if eyes or the bot is pinged in message add the reaction
+        if ('\N{EYES}' in after.content or bot.user.mentioned_in(after)):
+            await after.add_reaction('\N{EYES}')
+        # if eyes isn't mentioned or the bot isn't pinged in message remove the reaction
+        else:
+            await after.remove_reaction('\N{EYES}', bot.user)
 
 #   ██████╗ ██████╗ ███╗   ███╗███╗   ███╗ █████╗ ███╗   ██╗██████╗ ███████╗
 #  ██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝
@@ -139,7 +150,7 @@ class DM_Commands(commands.Cog, name="Direct Message Commands"):
         if ctx.guild:
             await ctx.reply("Please DM me if you would like to use that command!")
         else:
-            user_hash = get_user_hash(ctx.author.id)
+            user_hash = get_hash(ctx.author.id)
             if check_blacklist_for_user(user_hash) == False:
                 blacklist_users.append(user_hash)
                 write_json_to_file('blacklist.txt', blacklist_users)
@@ -156,7 +167,7 @@ class DM_Commands(commands.Cog, name="Direct Message Commands"):
         if ctx.guild:
             await ctx.reply("Please DM me if you would like to use that command!")
         else:
-            user_hash = get_user_hash(ctx.author.id)
+            user_hash = get_hash(ctx.author.id)
             if check_blacklist_for_user(user_hash) == True:
                 blacklist_users.remove(user_hash)
                 write_json_to_file('blacklist.txt', blacklist_users)
@@ -170,62 +181,111 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         name="allowreplies",
         description="Allow bot replies to messages.",
         help="This will allow me to send messages into the server. Default: True.",
-        hidden=True,
         usage="\N{EYES}allowreplies true|false"
     )
     @commands.has_permissions(administrator=True)
     async def allow_replies(self, ctx, value):
-        print("Allow Replies: {}".format(value))
-        pass
+        guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
+        value = value.lower()
+
+        if value == "true":
+            setting = True
+        elif value == "false":
+            setting = False
+        else:
+            await ctx.reply("Incorrect usage. Please try `\N{EYES}allowreplies true|false`")
+            return
+        guild_settings["send_replies"] = setting
+        
+        write_json_to_file(get_guild_file(ctx.guild.id), guild_settings)
+
+        await ctx.reply("Send replies set to {}".format(setting))
     
     @commands.command(
         aliases=["reactions"],
         name="allowreactions",
         description="Allow bot to add reactions to messages. Default: True.",
         help="This will allow me to add reactions.",
-        hidden=True,
-        usage="\N{EYES}allowreactions true|false"
+        usage="true|false"
     )
     @commands.has_permissions(administrator=True)
     async def allow_reactions(self, ctx, value):
-        print("Allow Reactions: {}".format(value))
-        pass
+        guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
+        value = value.lower()
+
+        if value == "true":
+            setting = True
+        elif value == "false":
+            setting = False
+        else:
+            await ctx.reply("Incorrect usage. Please try `\N{EYES}allowreactions true|false`")
+            return
+        guild_settings["allow_reactions"] = setting
+        
+        write_json_to_file(get_guild_file(ctx.guild.id), guild_settings)
+
+        await ctx.reply("Allow reactions set to {}".format(setting))
     
     @commands.command(
         aliases=["dms"],
         name="allowdms",
         description="Allow bot to send direct messages to users.",
         help="This will allow me to send direct messages to users when, for example, they say 'good bot' to me. Default: True.",
-        hidden=True,
-        usage="\N{EYES}allowdms true|false"
+        usage="true|false"
     )
     @commands.has_permissions(administrator=True)
     async def allow_dms(self, ctx, value):
-        print("Allow Direct Messages: {}".format(value))
-        pass
+        guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
+        value = value.lower()
+
+        if value == "true":
+            setting = True
+        elif value == "false":
+            setting = False
+        else:
+            await ctx.reply("Incorrect usage. Please try `\N{EYES}allowdms true|false`")
+            return
+        guild_settings["allow_direct_dms"] = setting
+        
+        write_json_to_file(get_guild_file(ctx.guild.id), guild_settings)
+
+        await ctx.reply("Allow Direct Messages set to {}".format(setting))
     
     @commands.command(
-        name="edits",
+        aliases=["edits"],
+        name="allowedits",
         description="Allow me to change reactions when messages are edited.",
         help="This will allow me to change reactions when messages are edited. Disabling this saves server capacity and helps keep latency low. Default: False.",
-        hidden=True,
-        usage="\N{EYES}edits true|false"
+        usage="true|false"
     )
     @commands.has_permissions(administrator=True)
     async def allow_edits(self, ctx, value):
-        print("Allow Edits: {}".format(value))
-        pass
+        guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
+        value = value.lower()
+
+        if value == "true":
+            setting = True
+        elif value == "false":
+            setting = False
+        else:
+            await ctx.reply("Incorrect usage. Please try `\N{EYES}allowedits true|false`")
+            return
+        guild_settings["allow_direct_dms"] = setting
+        
+        write_json_to_file(get_guild_file(ctx.guild.id), guild_settings)
+        
+        await ctx.reply("Allow Reaction Edits set to {}".format(setting))
     
     @commands.command(
         name="reset",
         description="Reset my configuration.",
-        help="This will reset the config which has been set up.",
-        hidden=True
+        help="This will reset the config which has been set up."
     )
     @commands.has_permissions(administrator=True)
     async def reset_settings(self, ctx):
-        print("Reset Settings")
-        pass
+        guild_settings = default_guild_settings
+        
+        write_json_to_file(get_guild_file(ctx.guild.id), guild_settings)
 
 bot.add_cog(DM_Commands())
 bot.add_cog(Server_Commands())
