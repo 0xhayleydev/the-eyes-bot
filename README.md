@@ -1,4 +1,7 @@
+#The Eyes Bot Source Code
 Written in discord.py
+
+This is an open source project. If you would like to make changes 
 
 The bot has one function, reacting to messages which contain the 👀 emote.
 
@@ -10,10 +13,22 @@ Overall, it's a fun, memey bot which people seem to really love!
 
 If you run into any issues using the bot, please join my discord and I can resolve your issues :)
 
-Commands:
+#Default Commands:
 
-`👀help` - this will show the help dialogue
+`👀help` - This will show the help dialogue.
 
-`👀blacklist` - this will prevent the bot from sending you direct messages (this must be sent in a DM)
+`👀blacklist` - Add yourself to the blacklist for the bot. This will prevent me from sending you Direct Messages.
 
-`👀whitelist` - this will allow the bot to send you direct messages (must be sent in a DM)
+`👀whitelist` - Remove yourself to the blacklist for the bot. This will allow me to send you Direct Messages.
+
+`👀allowreplies true|false` - This will allow me to send messages into the server. Default: True.
+
+`👀allowreactions true|false` - Allow bot to add reactions to messages. Default: True.
+
+`👀allowdms true|false` - This will allow me to send direct messages to users when, for example, they say 'good bot' to me. Default: True.
+
+`👀allowreactions true|false` - Allow bot to add reactions to messages. Default: True.
+
+`👀allowedits true|false` - This will allow me to change reactions when messages are edited. Disabling this saves server capacity and helps keep latency low. Default: False.
+
+`👀reset` - This will reset the config which has been set up.
