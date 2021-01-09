@@ -1,7 +1,28 @@
-#The Eyes Bot Source Code
-Written in discord.py
+# License
+MIT License
 
-This is an open source project. If you would like to make changes 
+Copyright (c) 2021 Hayley Davies
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+# The Eyes Bot Source Code
+Written in discord.py
 
 The bot has one function, reacting to messages which contain the 👀 emote.
 
@@ -13,7 +34,7 @@ Overall, it's a fun, memey bot which people seem to really love!
 
 If you run into any issues using the bot, please join my discord and I can resolve your issues :)
 
-#Default Commands:
+# Default Commands:
 
 `👀help` - This will show the help dialogue.
 
