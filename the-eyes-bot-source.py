@@ -92,7 +92,10 @@ async def on_ready():
 # bot event on message
 @bot.event
 async def on_message(msg):
-    guild_settings = read_json_from_file(get_guild_file(msg.guild.id), default_guild_settings)
+    if msg.guild:
+        guild_settings = read_json_from_file(get_guild_file(msg.guild.id), default_guild_settings)
+    else:
+        guild_settings = default_guild_settings
 
     # get the content of the message all as lowercase
     content = msg.content.lower()
@@ -124,7 +127,10 @@ async def on_message(msg):
 # bot event message edits
 @bot.event
 async def on_message_edit(before, after):
-    guild_settings = read_json_from_file(get_guild_file(before.guild.id), default_guild_settings)
+    if before.guild:
+        guild_settings = read_json_from_file(get_guild_file(before.guild.id), default_guild_settings)
+    else:
+        guild_settings = default_guild_settings
 
     if guild_settings["react_to_edited_messages"] and guild_settings["add_reactions"]:
         # if eyes or the bot is pinged in message add the reaction
