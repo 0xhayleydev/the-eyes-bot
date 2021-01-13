@@ -171,8 +171,19 @@ async def on_message(msg):
     
     # if eyes emoji is in the message or the bot is mentioned and the server allows reactions
     if ('\N{EYES}' in content or bot.user.mentioned_in(msg)) and guild_settings["add_reactions"]:
-        # add the eyes reaction to the message
-        await msg.add_reaction('\N{EYES}')
+        # get the bot's permissions
+        permissions = msg.guild.me.permissions_in(msg.channel)
+        # if the bot has the permission to add rections
+        if permissions.add_reactions:
+            # add the eyes reaction to the message
+            await msg.add_reaction('\N{EYES}')
+        # if the bot lacks the permission to add reactions
+        else:
+            # add that to the guild settings
+            guild_settings["add_reactions"] = False
+            # update the server's json file
+            write_json_to_file(get_guild_file(msg.guild.id), guild_settings)
+
     
     # make the bot process commands
     await bot.process_commands(msg)
