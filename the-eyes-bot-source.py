@@ -6,15 +6,48 @@
 #     ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚══════╝   ╚═╝   ╚══════╝╚══════╝    ╚═════╝  ╚═════╝    ╚═╝       ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚══════╝
 # testing mode, this switches between using token.txt (False)
 # and testing_token.txt (True) so the bot can be tested without disrupting the experience
-TESTING = False
+TESTING = True
+OLD_SERVER_FILE_EXTENSION = ".json"
+NEW_SERVER_FILE_EXTENSION = ".tebserver"
 
 # imports
-import os, discord, json, hashlib, os
+import os, discord, json, hashlib
 from discord.ext import commands
 
 # if the server path doesn't exist, make it
 if not os.path.exists("server"):
     os.mkdir("server")
+
+# renmame all json files to server
+def rename_json_to_server():
+    # for each file in the main directory
+    for f in os.listdir():
+        # get the prefix and extension of the file name
+        pre, ext = os.path.splitext(f)
+        # if the extension is the old extension
+        if ext == OLD_SERVER_FILE_EXTENSION:
+            # set the extension to the new extension
+            ext = NEW_SERVER_FILE_EXTENSION
+            # replace server\\ (due to bug caused in previous verison) 
+            pre = pre.replace("server\\", "")
+            # make sure that the file is stored in the server/ folder
+            pre = "server/" + pre
+            # rename the file
+            os.rename(f, pre + ext)
+
+# run the rename command
+rename_json_to_server()
+
+# function to get the amount of servers
+def get_server_count():
+    count = 0
+    files = os.listdir("server/")
+    for f in files:
+        pre, ext = os.path.splitext(f)
+        if ext == NEW_SERVER_FILE_EXTENSION:
+            count += 1
+    print("I am in {} servers".format(count))
+    return count
 
 # default server settings
 default_guild_settings = {
@@ -83,7 +116,7 @@ def check_blacklist_for_user(user_id):
 # param: guild_id -> the id of the guild to find a file for
 def get_guild_file(guild_id):
     # return the server file's location after hashing the guild id
-    return "server\\" + get_hash(guild_id) + ".json"
+    return "server/" + get_hash(guild_id) + NEW_SERVER_FILE_EXTENSION
 
 # if testing mode enabled
 if TESTING:
@@ -94,9 +127,11 @@ else:
     # read the normal token file
     with open('token.txt', 'r') as file:
         TOKEN = file.read()
+    
 
 # instantiate the bot with the prefix of :eyes:
 bot = commands.Bot(command_prefix="\N{EYES}")
+    
 
 #  ███████╗██╗   ██╗███████╗███╗   ██╗████████╗███████╗
 #  ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
@@ -109,16 +144,16 @@ bot = commands.Bot(command_prefix="\N{EYES}")
 async def on_ready():
     # log that the bot has connected
     print(f'{bot.user} has connected to Discord!')
-
+    
     # set the game activity
-    _activity = discord.Activity(name='my DMs \N{EYES}', type=discord.ActivityType.watching)
+    _activity = discord.Activity(name='{} servers \N{EYES}'.format(get_server_count()), type=discord.ActivityType.watching)
 
     # set the status
     _status = discord.Status.online
 
     # set the bot's prescense
     await bot.change_presence(status=_status, activity=_activity)
-    
+
 # function to run when the bot sees a new message
 # param: msg -> the message which is recived
 @bot.event
@@ -211,6 +246,36 @@ async def on_message_edit(before, after):
         else:
             await after.remove_reaction('\N{EYES}', bot.user)
 
+# function to run when the bot is added to a server
+# param: guild -> the guild the bot is added to
+@bot.event
+async def on_guild_join(guild):
+    write_json_to_file(get_guild_file(guild.id), default_guild_settings)
+
+    # set the game activity
+    _activity = discord.Activity(name='{} servers \N{EYES}'.format(get_server_count()), type=discord.ActivityType.watching)
+
+    # set the status
+    _status = discord.Status.online
+
+    # set the bot's prescense
+    await bot.change_presence(status=_status, activity=_activity)
+
+# function to run when the bot is removed from a server
+# param: guild -> the guild the bot is removed from
+@bot.event
+async def on_guild_remove(guild):
+    os.remove(get_guild_file(guild.id))
+
+    # set the game activity
+    _activity = discord.Activity(name='{} servers \N{EYES}'.format(get_server_count()), type=discord.ActivityType.watching)
+
+    # set the status
+    _status = discord.Status.online
+
+    # set the bot's prescense
+    await bot.change_presence(status=_status, activity=_activity)
+
 #   ██████╗ ██████╗ ███╗   ███╗███╗   ███╗ █████╗ ███╗   ██╗██████╗ ███████╗
 #  ██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝
 #  ██║     ██║   ██║██╔████╔██║██╔████╔██║███████║██╔██╗ ██║██║  ██║███████╗
@@ -289,9 +354,14 @@ class Server_Commands(commands.Cog, name="Server Commands"):
     @commands.has_permissions(administrator=True)
     # param: ctx -> the context of the message
     # param: value -> the value passed through via the message
-    async def allow_replies(self, ctx, value):
+    async def allow_replies(self, ctx, value=""):
         # get the guild settings
         guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
+
+        if value == "":
+            await ctx.reply("`Allow Sending Replies = {}`".format(guild_settings["send_replies"]))
+            return
+        
         # convert the value to lower
         value = value.lower()
 
@@ -303,11 +373,6 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         elif value == "false":
             # set the setting to false
             setting = False
-        # else: BROKEN - NEEDS FIX
-        else:
-            # send a reply indicating incorrect usage and return
-            await ctx.reply("Incorrect usage.")
-            return
         
         # set the guild setting of send_replies to the setting
         guild_settings["send_replies"] = setting
@@ -330,9 +395,14 @@ class Server_Commands(commands.Cog, name="Server Commands"):
     @commands.has_permissions(administrator=True)
     # param: ctx -> the context of the message
     # param: value -> the value passed through via the message
-    async def allow_reactions(self, ctx, value):
+    async def allow_reactions(self, ctx, value=""):
         # get the guild settings
         guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
+
+        if value == "":
+            await ctx.reply("`Allow Adding Reactions = {}`".format(guild_settings["add_reactions"]))
+            return
+
         # convert the value to lower
         value = value.lower()
 
@@ -344,14 +414,9 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         elif value == "false":
             # set the setting to false
             setting = False
-        # else: BROKEN - NEEDS FIX
-        else:
-            # send a reply indicating incorrect usage and return
-            await ctx.reply("Incorrect usage.")
-            return
         
         # set the guild setting of allow_reactions to the setting
-        guild_settings["allow_reactions"] = setting
+        guild_settings["add_reactions"] = setting
         
         # write the new data to the setting file
         write_json_to_file(get_guild_file(ctx.guild.id), guild_settings)
@@ -371,9 +436,14 @@ class Server_Commands(commands.Cog, name="Server Commands"):
     @commands.has_permissions(administrator=True)
     # param: ctx -> the context of the message
     # param: value -> the value passed through via the message
-    async def allow_dms(self, ctx, value):
+    async def allow_dms(self, ctx, value=""):
         # get the guild settings
         guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
+
+        if value == "":
+            await ctx.reply("`Allow Direct Messages = {}`".format(guild_settings["allow_direct_dms"]))
+            return
+
         # convert the value to lower
         value = value.lower()
 
@@ -385,11 +455,6 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         elif value == "false":
             # set the setting to false
             setting = False
-        # else: BROKEN - NEEDS FIX
-        else:
-            # send a reply indicating incorrect usage and return
-            await ctx.reply("Incorrect usage.")
-            return
         
         # set the guild setting of allow_direct_dms to the setting
         guild_settings["allow_direct_dms"] = setting
@@ -412,9 +477,14 @@ class Server_Commands(commands.Cog, name="Server Commands"):
     @commands.has_permissions(administrator=True)
     # param: ctx -> the context of the message
     # param: value -> the value passed through via the message
-    async def allow_edits(self, ctx, value):
+    async def allow_edits(self, ctx, value=""):
         # get the guild settings
         guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
+
+        if value == "":
+            await ctx.reply("`React To Edited Messages = {}`".format(guild_settings["react_to_edited_messages"]))
+            return
+        
         # convert the value to lower
         value = value.lower()
 
@@ -433,7 +503,7 @@ class Server_Commands(commands.Cog, name="Server Commands"):
             return
 
         # set the guild setting of allow_direct_dms to the setting
-        guild_settings["allow_direct_dms"] = setting
+        guild_settings["react_to_edited_messages"] = setting
         
         # write the new data to the setting file
         write_json_to_file(get_guild_file(ctx.guild.id), guild_settings)
