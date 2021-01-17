@@ -6,7 +6,7 @@
 #     ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚══════╝   ╚═╝   ╚══════╝╚══════╝    ╚═════╝  ╚═════╝    ╚═╝       ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚══════╝
 # testing mode, this switches between using token.txt (False)
 # and testing_token.txt (True) so the bot can be tested without disrupting the experience
-TESTING = True
+TESTING = False
 OLD_SERVER_FILE_EXTENSION = ".json"
 NEW_SERVER_FILE_EXTENSION = ".tebserver"
 
@@ -40,13 +40,21 @@ rename_json_to_server()
 
 # function to get the amount of servers
 def get_server_count():
+    # set the count to 0
     count = 0
+    # list all the files in the server subdirectory
     files = os.listdir("server/")
+    # for each file
     for f in files:
+        # split the prefix (name) and extension
         pre, ext = os.path.splitext(f)
+        # if the extension is the new .tebserver extension
         if ext == NEW_SERVER_FILE_EXTENSION:
+            # increase the count
             count += 1
+    # print how many servers the bot is in
     print("I am in {} servers".format(count))
+    # return how many servers the bot is in
     return count
 
 # default server settings
@@ -358,8 +366,11 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         # get the guild settings
         guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
 
+        # if the value isn't set
         if value == "":
+            # tell the user the current value of the setting
             await ctx.reply("`Allow Sending Replies = {}`".format(guild_settings["send_replies"]))
+            # don't run any more of the function
             return
         
         # convert the value to lower
@@ -373,6 +384,12 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         elif value == "false":
             # set the setting to false
             setting = False
+        # if the value is invalid
+        else:
+            # tell the user how the command is used
+            await ctx.reply("Incorrect usage.\nPlease try: `{}`".format(Server_Commands.allow_replies.usage))
+            # don't run any more of the function
+            return
         
         # set the guild setting of send_replies to the setting
         guild_settings["send_replies"] = setting
@@ -389,7 +406,7 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         name="allowreactions",
         description="Allow bot to add reactions to messages. Default: True.",
         help="This will allow me to add reactions.",
-        usage="true|false"
+        usage="\N{EYES}allowreactions true|false"
     )
     # make sure the user has the admin permission
     @commands.has_permissions(administrator=True)
@@ -399,8 +416,11 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         # get the guild settings
         guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
 
+        # if the value isn't set
         if value == "":
+            # tell the user the current value of the setting
             await ctx.reply("`Allow Adding Reactions = {}`".format(guild_settings["add_reactions"]))
+            # don't run any more of the function
             return
 
         # convert the value to lower
@@ -414,6 +434,11 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         elif value == "false":
             # set the setting to false
             setting = False
+        else:
+            # tell the user how the command is used
+            await ctx.reply("Incorrect usage.\nPlease try: `{}`".format(Server_Commands.allow_reactions.usage))
+            # don't run any more of the function
+            return
         
         # set the guild setting of allow_reactions to the setting
         guild_settings["add_reactions"] = setting
@@ -430,7 +455,7 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         name="allowdms",
         description="Allow bot to send direct messages to users.",
         help="This will allow me to send direct messages to users when, for example, they say 'good bot' to me. Default: True.",
-        usage="true|false"
+        usage="\N{EYES}allowdms true|false"
     )
     # make sure the user has the admin permission
     @commands.has_permissions(administrator=True)
@@ -440,8 +465,11 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         # get the guild settings
         guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
 
+        # if the value isn't set
         if value == "":
+            # tell the user the current value of the setting
             await ctx.reply("`Allow Direct Messages = {}`".format(guild_settings["allow_direct_dms"]))
+            # don't run any more of the function
             return
 
         # convert the value to lower
@@ -455,6 +483,11 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         elif value == "false":
             # set the setting to false
             setting = False
+        else:
+            # tell the user how the command is used
+            await ctx.reply("Incorrect usage.\nPlease try: `{}`".format(Server_Commands.allow_dms.usage))
+            # don't run any more of the function
+            return
         
         # set the guild setting of allow_direct_dms to the setting
         guild_settings["allow_direct_dms"] = setting
@@ -471,7 +504,7 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         name="allowedits",
         description="Allow me to change reactions when messages are edited.",
         help="This will allow me to change reactions when messages are edited. Disabling this saves server capacity and helps keep latency low. Default: False.",
-        usage="true|false"
+        usage="\N{EYES}allowedits true|false"
     )
     # make sure the user has the admin permission
     @commands.has_permissions(administrator=True)
@@ -481,8 +514,11 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         # get the guild settings
         guild_settings = read_json_from_file(get_guild_file(ctx.guild.id), default_guild_settings)
 
+        # if the value isn't set
         if value == "":
+            # tell the user the current value of the setting
             await ctx.reply("`React To Edited Messages = {}`".format(guild_settings["react_to_edited_messages"]))
+            # don't run any more of the function
             return
         
         # convert the value to lower
@@ -496,10 +532,10 @@ class Server_Commands(commands.Cog, name="Server Commands"):
         elif value == "false":
             # set the setting to false
             setting = False
-        # else: BROKEN - NEEDS FIX
         else:
-            # send a reply indicating incorrect usage and return
-            await ctx.reply("Incorrect usage.")
+            # tell the user how the command is used
+            await ctx.reply("Incorrect usage.\nPlease try: `{}`".format(Server_Commands.allow_edits.usage))
+            # don't run any more of the function
             return
 
         # set the guild setting of allow_direct_dms to the setting
